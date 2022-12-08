@@ -5,22 +5,21 @@
 #include <sstream>
 #include <algorithm>
 #include <map>
+
 using namespace std;
 
 /*
 
 data analisis by:
 
-num of messages per day of the week
 most used emojis
-num of messages per time of the day (by hours)
 most used word
 diversity of lexic
 
 */
 
-string personA = "#name";
-string personB = "#name";
+string personA = "name";
+string personB = "name";
 
 int countME = 0;
 int countTHEM = 0;
@@ -44,6 +43,18 @@ void write_csv_hour(string filename, map<int, int> hourlyCount){
     myFile << "hour, nMessages"<< endl;
     
     for (auto itr = hourlyCount.begin(); itr != hourlyCount.end(); ++itr) {
+        myFile << itr->first << ", " << itr->second << '\n';
+    }
+
+    myFile.close();
+}
+
+void write_csv_day(string filename, map<string, int> dailyCount){
+    ofstream myFile(filename);
+    
+    myFile << "day, nMessages"<< endl;
+    
+    for (auto itr = dailyCount.begin(); itr != dailyCount.end(); ++itr) {
         myFile << itr->first << ", " << itr->second << '\n';
     }
 
@@ -147,12 +158,58 @@ void addHourly(string time, map<int, int>& hourlyCount) {
     else it->second = it->second+1;
 }
 
+const string daysWeek[] = {
+    "Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"
+};
+
+int getDayWeek(int d, int m, int y) {
+    static int t[] = { 0, 3, 2, 5, 0, 3, 5, 1, 4, 6, 2, 4 };
+    y -= m < 3;
+    return ( y + y / 4 - y / 100 + y / 400 + t[m - 1] + d) % 7;  
+}
+
+int findMonth (string month) {
+    if (month == "January") return 1;
+    else if (month == "February") return 2;
+    else if (month == "March") return 3;
+    else if (month == "April") return 4;
+    else if (month == "May") return 5;
+    else if (month == "June") return 6;
+    else if (month == "July") return 7;
+    else if (month == "August") return 8;
+    else if (month == "September") return 9;
+    else if (month == "October") return 10;
+    else if (month == "November") return 11;
+    else if (month == "December") return 12;
+    return -1;
+}
+
+void addDaily(string date, map<string, int>& dailyCount) {
+    int d, m, y;
+
+    vector<string> dateFull;
+    istringstream ss(date);
+    string s;
+    int which = 0;
+    while(getline(ss, s, ' ')) {
+        if (which == 0) d = atoi(s.c_str());
+        else if (which == 1) m = findMonth(s);
+        else if (which == 2) y = atoi(s.c_str());
+        which++;
+    }
+
+    string dayOfWeek = daysWeek[getDayWeek(d, m, y)];
+
+    map<string, int>::iterator it = dailyCount.find(dayOfWeek);
+    if (it == dailyCount.end()) dailyCount.insert({dayOfWeek, 1});
+    else it->second += 1;
+}
+
 int main() {
     ifstream myfile;
     string fileName = "deleted.txt";
     myfile.open(fileName);                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                            
     string line;
-
 
     string currentPerson;
     string currentDate;
@@ -161,9 +218,11 @@ int main() {
     map<string, pair<int, int>> monthlyCount;
     bool ignore = false;
     map<int, int> hourlyCount;
+    map<string, int> dailyCount;
 
     if (myfile.is_open()) {
         while (getline(myfile, line)) {
+            cout << line << endl;
             if (isDate(line)) {
                 ignore = false;
                 currentDate = line;
@@ -181,13 +240,15 @@ int main() {
                 if (!ignore && !currentDate.empty()) {
                     addMonthly(currentDate, currentPerson, monthlyCount);
                     addHourly(currentTime, hourlyCount);
+                    addDaily(currentDate, dailyCount);
                 }
             }
         }
-        cout << "hello" << endl;
+        cout << "finished" << endl;
     }
 
     write_csv("monthly.csv", monthlyCount);
     write_csv_total("total.csv");
     write_csv_hour("hourly.csv", hourlyCount);
+    write_csv_day("daily.csv", dailyCount);
 }
