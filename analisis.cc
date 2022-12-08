@@ -23,6 +23,8 @@ string personB = "name";
 
 int countME = 0;
 int countTHEM = 0;
+int countMEind = 0;
+int countTHEMind = 0;
     
 void write_csv(string filename, map<string, pair<int, int>> monthlyCount){
     ofstream myFile(filename);
@@ -64,8 +66,8 @@ void write_csv_day(string filename, map<string, int> dailyCount){
 void write_csv_total(string filename){
     ofstream myFile(filename);
     
-    myFile << "nMessagesMe, nMessagesFriend"<< endl;
-    myFile << countME << ", " << countTHEM << endl;
+    myFile << "nMessagesMe, nMessagesFriend, indMsgsMe, indMsgsFriend"<< endl;
+    myFile << countME << ", " << countTHEM << ", " << countMEind << ", " << countTHEMind << endl;
 
     myFile.close();
 }
@@ -108,7 +110,7 @@ bool isToIgnore (string line) {
     return false;
 }
 
-void addMonthly(string date, string currentPerson, map<string, pair<int, int>>& monthlyCount) {
+void addMonthly(string date, string currentPerson, map<string, pair<int, int>>& monthlyCount, int linesize) {
     string month;
 
     for (int i = 3; i < date.size(); ++i) {
@@ -120,10 +122,12 @@ void addMonthly(string date, string currentPerson, map<string, pair<int, int>>& 
     if (currentPerson == personA) {
         iniME = 1;
         countME++;
+        countMEind += linesize;
     }
     else {
         iniTHEM = 1;
         countTHEM++;
+        countTHEMind += linesize;
     }
 
     map<string, pair<int, int>>::iterator it = monthlyCount.find(month);
@@ -135,7 +139,7 @@ void addMonthly(string date, string currentPerson, map<string, pair<int, int>>& 
             it->second.first = it->second.first+1;
             countME++;
         }
-        else {
+        else if (iniTHEM) {
             it->second.second = it->second.second+1;
             countTHEM++;
         }
@@ -222,25 +226,26 @@ int main() {
 
     if (myfile.is_open()) {
         while (getline(myfile, line)) {
-            cout << line << endl;
-            if (isDate(line)) {
-                ignore = false;
-                currentDate = line;
-            }
-            else if (isPerson(line, personA, personB)) {
-                ignore = false;
-                currentPerson = line;
-            }
-            else if (isTime(line)) {
-                ignore = false;
-                currentTime = line;
-            }
-            else {
-                if (isToIgnore(line)) ignore = true;
-                if (!ignore && !currentDate.empty()) {
-                    addMonthly(currentDate, currentPerson, monthlyCount);
-                    addHourly(currentTime, hourlyCount);
-                    addDaily(currentDate, dailyCount);
+            if (line != "M" && line != "h") {
+                if (isDate(line)) {
+                    ignore = false;
+                    currentDate = line;
+                }
+                else if (isPerson(line, personA, personB)) {
+                    ignore = false;
+                    currentPerson = line;
+                }
+                else if (isTime(line)) {
+                    ignore = false;
+                    currentTime = line;
+                }
+                else {
+                    if (isToIgnore(line)) ignore = true;
+                    if (!ignore && !currentDate.empty()) {
+                        addMonthly(currentDate, currentPerson, monthlyCount, line.size());
+                        addHourly(currentTime, hourlyCount);
+                        addDaily(currentDate, dailyCount);
+                    }
                 }
             }
         }
