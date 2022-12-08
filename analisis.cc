@@ -22,6 +22,9 @@ diversity of lexic
 
 string personA = "#name";
 string personB = "#name";
+
+int countME = 0;
+int countTHEM = 0;
     
 void write_csv(string filename, map<string, pair<int, int>> monthlyCount){
     ofstream myFile(filename);
@@ -32,6 +35,16 @@ void write_csv(string filename, map<string, pair<int, int>> monthlyCount){
         myFile << itr->first
              << ", " << itr->second.first << ", " << itr->second.second << '\n';
     }
+
+    myFile.close();
+}
+
+void write_csv_total(string filename){
+    ofstream myFile(filename);
+    
+    myFile << "nMessagesMe, nMessagesFriend"<< endl;
+    
+    myFile << countME << ", " << countTHEM << endl;
 
     myFile.close();
 }
@@ -74,7 +87,6 @@ bool isToIgnore (string line) {
     return false;
 }
 
-//who = 1 friend, who = 0 me
 void addMonthly(string date, string currentPerson, map<string, pair<int, int>>& monthlyCount) {
     string month;
 
@@ -86,16 +98,26 @@ void addMonthly(string date, string currentPerson, map<string, pair<int, int>>& 
     int iniTHEM = 0;
     if (currentPerson == personA) {
         iniME = 1;
+        countME++;
     }
-    else iniTHEM = 1;
+    else {
+        iniTHEM = 1;
+        countTHEM++;
+    }
 
     map<string, pair<int, int>>::iterator it = monthlyCount.find(month);
     if (it == monthlyCount.end()) {
         monthlyCount.insert({month, make_pair(iniME, iniTHEM)});
     }
     else {
-        if (iniME) it->second.first = it->second.first+1;
-        else it->second.second = it->second.second+1;
+        if (iniME) {
+            it->second.first = it->second.first+1;
+            countME++;
+        }
+        else {
+            it->second.second = it->second.second+1;
+            countTHEM++;
+        }
     }
 }
 
@@ -114,33 +136,28 @@ int main() {
     bool ignore = false;
     if (myfile.is_open()) {
         while (getline(myfile, line)) {
-            //if (line.size() == 0) continue;
             if (isDate(line)) {
-                //cout << line << " is Date" << endl;
                 ignore = false;
                 currentDate = line;
             }
             else if (isPerson(line, personA, personB)) {
-                //cout << line << " is Person" << endl;
                 ignore = false;
                 currentPerson = line;
             }
             else if (isTime(line)) {
-                //cout << line << " is Time" << endl;
                 ignore = false;
                 currentTime = line;
             }
             else {
                 if (isToIgnore(line)) ignore = true;
                 if (!ignore) {
-                    //cout << "[" << currentDate << ", " << currentTime << "] " << currentPerson << ": " << line << endl;
                     addMonthly(currentDate, currentPerson, monthlyCount);
                 }
             }
         }
         cout << "hello" << endl;
     }
-    //cout << "hi " << monthlyCount.size() << endl;
 
     write_csv("graph.csv", monthlyCount);
+    write_csv_total("total.csv");
 }
