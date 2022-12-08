@@ -11,7 +11,6 @@ using namespace std;
 
 data analisis by:
 
-num of messages per season
 num of messages per day of the week
 most used emojis
 num of messages per time of the day (by hours)
@@ -39,11 +38,22 @@ void write_csv(string filename, map<string, pair<int, int>> monthlyCount){
     myFile.close();
 }
 
+void write_csv_hour(string filename, map<int, int> hourlyCount){
+    ofstream myFile(filename);
+    
+    myFile << "hour, nMessages"<< endl;
+    
+    for (auto itr = hourlyCount.begin(); itr != hourlyCount.end(); ++itr) {
+        myFile << itr->first << ", " << itr->second << '\n';
+    }
+
+    myFile.close();
+}
+
 void write_csv_total(string filename){
     ofstream myFile(filename);
     
     myFile << "nMessagesMe, nMessagesFriend"<< endl;
-    
     myFile << countME << ", " << countTHEM << endl;
 
     myFile.close();
@@ -121,6 +131,22 @@ void addMonthly(string date, string currentPerson, map<string, pair<int, int>>& 
     }
 }
 
+void addHourly(string time, map<int, int>& hourlyCount) {
+    string hourString;
+
+    for (int i = 0; i < 2; ++i) {
+        hourString.push_back(time[i]);
+    }
+
+    int hour = atoi(hourString.c_str());
+
+    map<int, int>::iterator it = hourlyCount.find(hour);
+    if (it == hourlyCount.end()) {
+        hourlyCount.insert({hour, 1});
+    }
+    else it->second = it->second+1;
+}
+
 int main() {
     ifstream myfile;
     string fileName = "deleted.txt";
@@ -134,6 +160,8 @@ int main() {
 
     map<string, pair<int, int>> monthlyCount;
     bool ignore = false;
+    map<int, int> hourlyCount;
+
     if (myfile.is_open()) {
         while (getline(myfile, line)) {
             if (isDate(line)) {
@@ -150,14 +178,16 @@ int main() {
             }
             else {
                 if (isToIgnore(line)) ignore = true;
-                if (!ignore) {
+                if (!ignore && !currentDate.empty()) {
                     addMonthly(currentDate, currentPerson, monthlyCount);
+                    addHourly(currentTime, hourlyCount);
                 }
             }
         }
         cout << "hello" << endl;
     }
 
-    write_csv("graph.csv", monthlyCount);
+    write_csv("monthly.csv", monthlyCount);
     write_csv_total("total.csv");
+    write_csv_hour("hourly.csv", hourlyCount);
 }
