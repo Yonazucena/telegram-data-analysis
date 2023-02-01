@@ -7,45 +7,44 @@ hourFreq = pd.read_csv('hourly.csv')
 monthFreq = pd.read_csv('monthly.csv')
 totalFreq = pd.read_csv('total.csv')
 
-dayFreq.columns = dayFreq.columns.str.strip()
-hourFreq.columns = hourFreq.columns.str.strip()
-monthFreq.columns = monthFreq.columns.str.strip()
-totalFreq.columns = totalFreq.columns.str.strip()
-
 #day frequency
-plt.plot(dayFreq.day, dayFreq.nMessages)
+dayFreq.plot(x='day', y='count')
+plt.gca().set_ylim(bottom=0)
 plt.suptitle('Day Frequency')
 plt.show()
 
 #hour frequency
-plt.plot(hourFreq.hour, hourFreq.nMessages)
+hourFreq.plot(x='hour', y='count')
 plt.suptitle('Hour Frequency')
 plt.show()
 
 #month frequency
+monthFreq.plot(x='month', y='count')
 plt.suptitle('Month Frequency')
-messagesME = monthFreq.nMessagesMe
-messagesTHEM = monthFreq.nMessagesFriend
-p1 = plt.bar(monthFreq.months,  messagesME)
-p2 = plt.bar(monthFreq.months,  messagesTHEM, bottom=messagesME)
-plt.xticks(rotation = 45)
+x_ticks = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
+x_labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
+plt.xticks(ticks=x_ticks, labels=x_labels)
+plt.gca().set_ylim(bottom=0)
 plt.show()
 
 #message frequency
-labels = 'Me', 'Them'
-sizes = [totalFreq.at[0, "nMessagesMe"], totalFreq.at[0, "nMessagesFriend"]]
+labels = 'Me', 'You'
+sizes = [totalFreq.at[0, "nMessages1"], totalFreq.at[0, "nMessages2"]]
 print(sizes)
+colors = ['#FFC0CB', '#BCD2EB']
 fig1, ax1 = plt.subplots()
-ax1.pie(sizes, labels=labels)
+ax1.pie(sizes, labels=labels, colors=colors)
 ax1.axis('equal')
 plt.title('Message Frequency')
 plt.show()
 
-#message frequency by character
-labels = 'Me', 'Them'
-sizes = [totalFreq.at[0, "indMsgsMe"], totalFreq.at[0, "indMsgsFriend"]]
+#calls frequency
+labels = 'Me', 'You'
+sizes = [totalFreq.at[0, "nCalls1"], totalFreq.at[0, "nCalls2"]]
+print(sizes)
+colors = ['#FFC0CB', '#BCD2EB']
 fig1, ax1 = plt.subplots()
-ax1.pie(sizes, labels=labels)
+ax1.pie(sizes, labels=labels, colors=colors)
 ax1.axis('equal')
-plt.title('Message Frequency by character')
+plt.title('Call Frequency')
 plt.show()

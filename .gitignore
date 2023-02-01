@@ -9,3 +9,7 @@ hourly.csv
 monthly.csv
 test.txt
 daily.csv
+vars.py
+stats.txt
+result.json
+calls.csv

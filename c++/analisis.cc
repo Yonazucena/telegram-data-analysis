@@ -18,8 +18,8 @@ diversity of lexic
 
 */
 
-string personA = "name";
-string personB = "name";
+string personA = "huiwen";
+string personB = "Mocha ☕️";
 
 int countME = 0;
 int countTHEM = 0;
